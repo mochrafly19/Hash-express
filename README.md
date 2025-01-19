@@ -12,7 +12,17 @@ Clone repository ini ke dalam direktori lokal Anda:
 git clone https://github.com/mochrafly19/Hash-express.git
 
 ```
-### 2.Jalankan 
+### 2. Install Dependencies
 ```bash
 npm install
+```
+
+### 3. Jalankan Aplikasi di Backend
+```bash
+nodemon index
+```
+
+### 4.  Jalankan Aplikasi di Frontend
+```bash
+npm start
 ```

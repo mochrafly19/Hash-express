@@ -12,7 +12,28 @@ export const getUsers = async(req, res) => {
         console.log(error);
     }
 }
- 
+
+export const getUserById = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const user = await Users.findOne({
+            where: { id },
+            attributes: ['id', 'name', 'email']
+        });
+
+        if (!user) {
+            return res.status(404).json({ msg: "User not found" });
+        }
+
+        res.json(user);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ msg: "Failed to retrieve user" });
+    }
+};
+
+
 export const Register = async(req, res) => {
     const { name, email, password, confPassword } = req.body;
     if(password !== confPassword) return res.status(400).json({msg: "Password and Confirm Password do not match"});
@@ -81,3 +102,63 @@ export const Logout = async(req, res) => {
     res.clearCookie('refreshToken');
     return res.sendStatus(200);
 }
+
+export const updateUser = async (req, res) => {
+    const { id } = req.params;
+    const { name, email, password } = req.body;
+
+    try {
+        const user = await Users.findByPk(id);
+        if (!user) return res.status(404).json({ msg: "User not found" });
+
+        const updates = { name, email };
+
+        if (password) {
+            const salt = await bcrypt.genSalt();
+            updates.password = await bcrypt.hash(password, salt);
+        }
+
+        await user.update(updates);
+        res.json({ msg: "User updated successfully", user });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ msg: "Failed to update user" });
+    }
+};
+
+export const deleteUser = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const user = await Users.findByPk(id);
+        if (!user) return res.status(404).json({ msg: "User not found" });
+
+        await user.destroy();
+        res.json({ msg: "User deleted successfully" });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ msg: "Failed to delete user" });
+    }
+};
+
+export const addUser = async (req, res) => {
+    const { name, email, password, confPassword } = req.body;
+
+    if (password !== confPassword) return res.status(400).json({ msg: "Password and Confirm Password do not match" });
+
+    try {
+        const salt = await bcrypt.genSalt();
+        const hashPassword = await bcrypt.hash(password, salt);
+
+        const newUser = await Users.create({
+            name,
+            email,
+            password: hashPassword
+        });
+
+        res.status(201).json({ msg: "User added successfully", user: newUser });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ msg: "Failed to add user" });
+    }
+};
